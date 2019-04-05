@@ -11,6 +11,8 @@ namespace FacebookUsers.Controllers
     [Authorize]
     public class AccountController : Controller
     {
+        private const string ReturnUrl = "ReturnUrl";
+
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
 
@@ -30,7 +32,8 @@ namespace FacebookUsers.Controllers
             // Clear the existing external cookie to ensure a clean login process
             await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
 
-            ViewData["ReturnUrl"] = returnUrl;
+            ViewData[ReturnUrl] = returnUrl;
+
             return View();
         }
 
@@ -39,7 +42,7 @@ namespace FacebookUsers.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(LoginViewModel model, string returnUrl = null)
         {
-            ViewData["ReturnUrl"] = returnUrl;
+            ViewData[ReturnUrl] = returnUrl;
             if (ModelState.IsValid)
             {
                 var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, isPersistent: true, lockoutOnFailure: false);
@@ -70,7 +73,7 @@ namespace FacebookUsers.Controllers
         [AllowAnonymous]
         public IActionResult Register(string returnUrl = null)
         {
-            ViewData["ReturnUrl"] = returnUrl;
+            ViewData[ReturnUrl] = returnUrl;
             return View();
         }
 
@@ -79,7 +82,7 @@ namespace FacebookUsers.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Register(RegisterViewModel model, string returnUrl = null)
         {
-            ViewData["ReturnUrl"] = returnUrl;
+            ViewData[ReturnUrl] = returnUrl;
             if (ModelState.IsValid)
             {
                 var user = new ApplicationUser { UserName = model.Email, Email = model.Email };
@@ -91,8 +94,7 @@ namespace FacebookUsers.Controllers
                 }
                 AddErrors(result);
             }
-
-            // If we got this far, something failed, redisplay form
+            
             return View(model);
         }
 
