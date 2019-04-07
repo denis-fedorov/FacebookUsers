@@ -98,6 +98,45 @@ namespace FacebookUsers.Controllers
             return View(model);
         }
 
+        // POST: /Account/ExternalLogin
+        [HttpPost]
+        [AllowAnonymous]
+        public IActionResult ExternalLogin(string provider, string returnUrl = null)
+        {
+            // Request a redirect to the external login provider.
+            var redirectUrl = Url.Action(nameof(ExternalLoginCallback), "Account", new { ReturnUrl = returnUrl });
+            var properties = _signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
+            return Challenge(properties, provider);
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<IActionResult> ExternalLoginCallback(string returnUrl = null, string remoteError = null)
+        {
+            if (remoteError != null)
+            {
+                ModelState.AddModelError(string.Empty, $"Error from external provider: {remoteError}");
+                return View(nameof(Login));
+            }
+            ExternalLoginInfo info = await _signInManager.GetExternalLoginInfoAsync();
+            if (info == null)
+            {
+                return RedirectToAction(nameof(Login));
+            }
+
+            // Sign in the user with this external login provider if the user already has a login.
+            var result = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, isPersistent: false);
+            if (result.Succeeded)
+            {
+                return RedirectToLocal(returnUrl);
+            }
+            else
+            {
+                // If the user does not have an account, then ask the user to create an account.
+                return View(nameof(Login));
+            }
+        }
+
         private void AddErrors(IdentityResult result)
         {
             foreach (var error in result.Errors)
