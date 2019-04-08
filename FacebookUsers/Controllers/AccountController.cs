@@ -154,18 +154,34 @@ namespace FacebookUsers.Controllers
                 {
                     return View("ExternalLoginFailure");
                 }
-                var user = new ApplicationUser { UserName = model.Email, Email = model.Email };
-                var result = await _userManager.CreateAsync(user);
-                if (result.Succeeded)
+
+                IdentityResult result;
+                var existingUser = await _userManager.FindByNameAsync(model.Email);
+                if (existingUser == null)
                 {
-                    result = await _userManager.AddLoginAsync(user, info);
+                    var user = new ApplicationUser { UserName = model.Email, Email = model.Email };
+                    result = await _userManager.CreateAsync(user);
                     if (result.Succeeded)
                     {
-                        await _signInManager.SignInAsync(user, isPersistent: false);
+                        result = await _userManager.AddLoginAsync(user, info);
+                        if (result.Succeeded)
+                        {
+                            await _signInManager.SignInAsync(user, isPersistent: false);
+                            return RedirectToLocal(returnUrl);
+                        }
+                    }
+                    AddErrors(result);
+                }
+                else
+                {
+                    result = await _userManager.AddLoginAsync(existingUser, info);
+                    if (result.Succeeded)
+                    {
+                        await _signInManager.SignInAsync(existingUser, isPersistent: false);
                         return RedirectToLocal(returnUrl);
                     }
+                    AddErrors(result);
                 }
-                AddErrors(result);
             }
 
             ViewData["ReturnUrl"] = returnUrl;
