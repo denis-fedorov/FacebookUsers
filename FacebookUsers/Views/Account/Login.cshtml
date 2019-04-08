@@ -1,8 +1,4 @@
-﻿@using System.Collections.Generic
-@using System.Linq
-@using FacebookUsers.Models.AccountViewModels
-@using Microsoft.AspNetCore.Http
-@using Microsoft.AspNetCore.Http.Authentication
+﻿@using System.Linq
 @using Microsoft.AspNetCore.Identity
 @model FacebookUsers.Models.AccountViewModels.LoginViewModel
 @inject SignInManager<ApplicationUser> SignInManager
@@ -10,6 +6,7 @@
 @{
     ViewData["Title"] = "Log in";
 }
+
 <br />
 <div class="row">
     <div class="col-md-4">
@@ -44,8 +41,7 @@
                 {
                     <div>
                         <p>
-                            There are no external authentication services configured. See <a href="https://go.microsoft.com/fwlink/?LinkID=532715">this article</a>
-                            for details on setting up this ASP.NET application to support logging in via external services.
+                            There are no external authentication services configured.
                         </p>
                     </div>
                 }
