@@ -13,6 +13,7 @@ namespace FacebookUsers.Controllers
     public class AccountController : Controller
     {
         private const string ReturnUrl = "ReturnUrl";
+        private const string LoginProvider = "LoginProvider";
 
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
@@ -51,14 +52,11 @@ namespace FacebookUsers.Controllers
                 {
                     return RedirectToLocal(returnUrl);
                 }
-                else
-                {
-                    ModelState.AddModelError(string.Empty, "Invalid login attempt.");
-                    return View(model);
-                }
-            }
 
-            // If we got this far, something failed, redisplay form
+                ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+                return View(model);
+            }
+            
             return View(model);
         }
 
@@ -67,7 +65,7 @@ namespace FacebookUsers.Controllers
         public async Task<IActionResult> Logout()
         {
             await _signInManager.SignOutAsync();
-            return RedirectToAction(nameof(AccountController.Login), "Account");
+            return RedirectToAction(nameof(Login), "Account");
         }
 
         [HttpGet]
@@ -131,14 +129,12 @@ namespace FacebookUsers.Controllers
             {
                 return RedirectToLocal(returnUrl);
             }
-            else
-            {
-                // If the user does not have an account, then ask the user to create an account.
-                ViewData["ReturnUrl"] = returnUrl;
-                ViewData["LoginProvider"] = info.LoginProvider;
-                var email = info.Principal.FindFirstValue(ClaimTypes.Email);
-                return View("ExternalLoginConfirmation", new ExternalLoginConfirmationViewModel { Email = email });
-            }
+
+            // If the user does not have an account, then ask the user to create an account.
+            ViewData[ReturnUrl] = returnUrl;
+            ViewData[LoginProvider] = info.LoginProvider;
+            var email = info.Principal.FindFirstValue(ClaimTypes.Email);
+            return View("ExternalLoginConfirmation", new ExternalLoginConfirmationViewModel { Email = email });
         }
 
         [HttpPost]
@@ -148,7 +144,6 @@ namespace FacebookUsers.Controllers
         {
             if (ModelState.IsValid)
             {
-                // Get the information about the user from the external login provider
                 var info = await _signInManager.GetExternalLoginInfoAsync();
                 if (info == null)
                 {
@@ -184,7 +179,7 @@ namespace FacebookUsers.Controllers
                 }
             }
 
-            ViewData["ReturnUrl"] = returnUrl;
+            ViewData[ReturnUrl] = returnUrl;
             return View(model);
         }
 
@@ -202,10 +197,8 @@ namespace FacebookUsers.Controllers
             {
                 return Redirect(returnUrl);
             }
-            else
-            {
-                return RedirectToAction(nameof(HomeController.Index), "Home");
-            }
+
+            return RedirectToAction(nameof(HomeController.Index), "Home");
         }
     }
 }
